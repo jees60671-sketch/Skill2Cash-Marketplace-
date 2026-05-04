@@ -1,0 +1,100 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // 0. Default Deny
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // --- Helpers ---
+    function isSignedIn() { return request.auth != null; }
+    function isOwner(userId) { return isSignedIn() && request.auth.uid == userId; }
+    function isAdmin() { 
+      return isSignedIn() && (
+        request.auth.token.email == 'jees60671@gmail.com' || 
+        exists(/databases/$(database)/documents/admins/$(request.auth.uid))
+      );
+    }
+    function isValidId(id) { return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$'); }
+    function incoming() { return request.resource.data; }
+    function existing() { return resource.data; }
+
+    // --- User Rules ---
+    match /users/{userId} {
+      function isValidUser(data) {
+        return data.uid == userId &&
+               data.email is string && data.email.size() <= 256 &&
+               data.role in ['user', 'admin'] &&
+               data.balance is number && data.balance >= 0;
+      }
+      
+      allow get: if isSignedIn();
+      allow list: if isAdmin() || (isSignedIn() && resource.data.uid == request.auth.uid);
+      allow create: if isOwner(userId) && isValidUser(incoming()) && incoming().balance == 0;
+      allow update: if (isOwner(userId) && isValidUser(incoming()) && 
+                        incoming().diff(existing()).affectedKeys().hasOnly(['displayName', 'photoURL', 'bio'])) ||
+                    isAdmin();
+    }
+
+    // --- Task Rules ---
+    match /tasks/{taskId} {
+      function isValidTask(data) {
+        return data.title is string && data.title.size() <= 100 &&
+               data.price is number && data.price > 0 &&
+               data.status in ['open', 'in_progress', 'completed', 'cancelled'] &&
+               data.creatorId == request.auth.uid;
+      }
+
+      allow read: if isSignedIn();
+      allow create: if isSignedIn() && isValidTask(incoming()) && incoming().status == 'open';
+      allow update: if isSignedIn() && (
+        // Creator can update basic info if still open
+        (existing().status == 'open' && existing().creatorId == request.auth.uid && isValidTask(incoming()) && incoming().diff(existing()).affectedKeys().hasOnly(['title', 'description', 'price', 'category'])) ||
+        // Worker accepts task
+        (existing().status == 'open' && incoming().status == 'in_progress' && incoming().workerId == request.auth.uid && incoming().diff(existing()).affectedKeys().hasOnly(['status', 'workerId'])) ||
+        // Creator completes task
+        (existing().status == 'in_progress' && existing().creatorId == request.auth.uid && incoming().status == 'completed' && incoming().diff(existing()).affectedKeys().hasOnly(['status'])) ||
+        isAdmin()
+      );
+    }
+
+    match /tasks/{taskId}/submissions/{subId} {
+      allow read: if isSignedIn() && (get(/databases/$(database)/documents/tasks/$(taskId)).data.creatorId == request.auth.uid || get(/databases/$(database)/documents/tasks/$(taskId)).data.workerId == request.auth.uid);
+      allow create: if isSignedIn() && get(/databases/$(database)/documents/tasks/$(taskId)).data.workerId == request.auth.uid && incoming().taskId == taskId;
+      allow update: if isSignedIn() && get(/databases/$(database)/documents/tasks/$(taskId)).data.creatorId == request.auth.uid && incoming().diff(existing()).affectedKeys().hasOnly(['status', 'feedback']);
+    }
+
+    // --- Wallet Transactions ---
+    match /transactions/{txId} {
+      allow read: if isSignedIn() && (resource.data.userId == request.auth.uid || isAdmin());
+      allow create: if isSignedIn() && incoming().userId == request.auth.uid && incoming().status == 'pending';
+      // Only admin or system can complete transactions
+      allow update: if isAdmin();
+    }
+
+    // --- Chat Rules ---
+    match /chatRooms/{roomId} {
+      allow read: if isSignedIn() && request.auth.uid in resource.data.participants;
+      allow create: if isSignedIn() && request.auth.uid in incoming().participants;
+      allow update: if isSignedIn() && request.auth.uid in existing().participants;
+    }
+
+    match /chatRooms/{roomId}/messages/{msgId} {
+      allow read: if isSignedIn() && request.auth.uid in get(/databases/$(database)/documents/chatRooms/$(roomId)).data.participants;
+      allow create: if isSignedIn() && request.auth.uid in get(/databases/$(database)/documents/chatRooms/$(roomId)).data.participants && incoming().senderId == request.auth.uid;
+    }
+
+    // --- Review Rules ---
+    match /reviews/{revId} {
+      allow read: if isSignedIn();
+      allow create: if isSignedIn() && incoming().reviewerId == request.auth.uid;
+    }
+
+    // --- Notification Rules ---
+    match /users/{userId}/notifications/{notifId} {
+      allow read: if isOwner(userId);
+      allow update: if isOwner(userId) && incoming().diff(existing()).affectedKeys().hasOnly(['read']);
+      allow create: if isAdmin() || (isSignedIn() && incoming().userId != request.auth.uid); // Simplified for system
+    }
+  }
+}

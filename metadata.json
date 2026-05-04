@@ -1,0 +1,6 @@
+{
+  "name": "SKILL2CASHAPP",
+  "description": "A gig-based marketplace for microtasks with a wallet system, real-time chat, and withdrawal integrations (JazzCash, EasyPaisa, PayPal).",
+  "requestFramePermissions": ["camera", "microphone"],
+  "majorCapabilities": []
+}
