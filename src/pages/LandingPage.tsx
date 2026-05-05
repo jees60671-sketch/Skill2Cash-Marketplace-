@@ -1,25 +1,26 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'motion/react';
-import { ArrowRight, Zap, Target, ShieldCheck, Globe, Banknote, Sparkles } from 'lucide-react';
+import { ArrowRight, Zap, Target, ShieldCheck, Globe, Banknote, Sparkles, HeartHandshake, Shield, MessageCircle } from 'lucide-react';
 
 const LandingPage = () => {
   return (
-    <div className="bg-white selection:bg-orange-100 selection:text-orange-900">
+    <div className="bg-white dark:bg-neutral-950 selection:bg-orange-100 selection:text-orange-900 transition-colors">
       {/* Navigation */}
-      <nav className="fixed top-0 w-full z-50 border-b border-neutral-100 bg-white/70 backdrop-blur-xl">
+      <nav className="fixed top-0 w-full z-50 border-b border-neutral-100 dark:border-neutral-800 bg-white/70 dark:bg-neutral-900/70 backdrop-blur-xl">
         <div className="mx-auto max-w-7xl px-6 h-20 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <div className="h-8 w-8 bg-neutral-900 rounded-lg flex items-center justify-center">
+            <div className="h-8 w-8 bg-neutral-900 dark:bg-neutral-800 rounded-lg flex items-center justify-center">
               <Sparkles size={18} className="text-orange-500" fill="currentColor" />
             </div>
-            <span className="font-display text-xl font-bold tracking-tight text-neutral-900">
+            <span className="font-display text-xl font-bold tracking-tight text-neutral-900 dark:text-white">
               SKILL<span className="text-orange-600">2CASH</span>
             </span>
           </div>
-          <div className="flex items-center gap-6">
-            <Link to="/marketplace" className="text-sm font-semibold text-neutral-600 hover:text-neutral-900 transition-colors">Marketplace</Link>
-            <Link to="/auth" className="text-sm font-bold text-white bg-neutral-900 px-6 py-2.5 rounded-full hover:bg-neutral-800 transition-all active:scale-95 shadow-lg shadow-neutral-900/10">
+          <div className="flex items-center gap-4 sm:gap-6">
+            <Link to="/trust" className="hidden md:block text-sm font-semibold text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white transition-colors">Trust</Link>
+            <Link to="/marketplace" className="text-sm font-semibold text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white transition-colors">Marketplace</Link>
+            <Link to="/auth" className="text-sm font-bold text-white bg-neutral-900 dark:bg-orange-600 px-6 py-2.5 rounded-xl hover:bg-neutral-800 dark:hover:bg-orange-500 transition-all active:scale-95 shadow-lg shadow-neutral-900/10 dark:shadow-orange-600/20">
               Get Started
             </Link>
           </div>
@@ -35,31 +36,31 @@ const LandingPage = () => {
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
             >
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-orange-50 border border-orange-100 mb-8">
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-orange-50 dark:bg-orange-950/30 border border-orange-100 dark:border-orange-900/30 mb-8">
                 <div className="h-1.5 w-1.5 rounded-full animate-pulse bg-orange-500" />
-                <span className="text-[10px] font-black uppercase tracking-[0.2em] text-orange-600 font-display">
+                <span className="text-[10px] font-black uppercase tracking-[0.2em] text-orange-600 dark:text-orange-500 font-display">
                   Live in Pakistan & Worldwide
                 </span>
               </div>
-              <h1 className="font-display text-6xl md:text-8xl font-bold tracking-[-0.04em] text-neutral-900 leading-[0.9] mb-8">
+              <h1 className="font-display text-6xl md:text-8xl font-bold tracking-[-0.04em] text-neutral-900 dark:text-white leading-[0.9] mb-8">
                 Turn your <br />
                 <span className="text-orange-600">Spare Time</span> <br />
                 into Earnings.
               </h1>
-              <p className="max-w-md text-lg text-neutral-500 font-medium leading-relaxed mb-12">
-                A professional-grade micro-task marketplace. Secure escrow, instant verification, and localized withdrawals for the modern workforce.
+              <p className="max-w-md text-lg text-neutral-500 dark:text-neutral-400 font-medium leading-relaxed mb-12">
+                The most advanced micro-task ecosystem. Secure escrow, intelligent verification, and direct-to-bank payouts.
               </p>
               <div className="flex flex-col sm:flex-row gap-4">
                 <Link
                   to="/auth"
-                  className="group relative inline-flex items-center justify-center gap-3 rounded-2xl bg-neutral-900 px-10 py-5 text-sm font-bold text-white shadow-2xl transition-all hover:bg-neutral-800 hover:-translate-y-1 active:translate-y-0"
+                  className="group relative inline-flex items-center justify-center gap-3 rounded-2xl bg-neutral-900 dark:bg-white px-10 py-5 text-sm font-bold text-white dark:text-neutral-900 shadow-2xl transition-all hover:bg-neutral-800 dark:hover:bg-neutral-100 hover:-translate-y-1 active:translate-y-0"
                 >
                   Join Marketplace
                   <ArrowRight size={18} className="transition-transform group-hover:translate-x-1" />
                 </Link>
                 <Link
                   to="/marketplace"
-                  className="inline-flex items-center justify-center gap-2 rounded-2xl border border-neutral-200 bg-white px-10 py-5 text-sm font-bold text-neutral-900 transition-all hover:bg-neutral-50 hover:border-neutral-300"
+                  className="inline-flex items-center justify-center gap-2 rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 px-10 py-5 text-sm font-bold text-neutral-900 dark:text-white transition-all hover:bg-neutral-50 dark:hover:bg-neutral-800 hover:border-neutral-300 dark:hover:border-neutral-700"
                 >
                   Browse Tasks
                 </Link>
@@ -72,8 +73,8 @@ const LandingPage = () => {
               transition={{ duration: 1, ease: [0.16, 1, 0.3, 1] }}
               className="relative"
             >
-              <div className="relative z-10 p-4 bg-neutral-900 rounded-[3rem] shadow-[0_40px_80px_-15px_rgba(0,0,0,0.3)]">
-                <div className="aspect-[1.1] rounded-[2rem] bg-neutral-800 border border-neutral-700/50 overflow-hidden relative">
+              <div className="relative z-10 p-4 bg-neutral-900 dark:bg-neutral-800 rounded-[3rem] shadow-[0_40px_80px_-15px_rgba(0,0,0,0.3)]">
+                <div className="aspect-[1.1] rounded-[2rem] bg-neutral-800 dark:bg-neutral-900 border border-neutral-700/50 overflow-hidden relative">
                   {/* Decorative Dashboard UI Elements */}
                   <div className="p-8 space-y-6">
                     <div className="flex justify-between items-center">
@@ -100,96 +101,72 @@ const LandingPage = () => {
                       </div>
                     </div>
                   </div>
-                  <div className="absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-neutral-900 to-transparent" />
+                  <div className="absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-neutral-900 to-transparent opacity-50" />
                 </div>
               </div>
               {/* Background Shapes */}
-              <div className="absolute -top-20 -right-20 w-80 h-80 bg-orange-100 rounded-full blur-[100px] -z-10" />
-              <div className="absolute -bottom-20 -left-20 w-80 h-80 bg-blue-100 rounded-full blur-[100px] -z-10" />
+              <div className="absolute -top-20 -right-20 w-80 h-80 bg-orange-100 dark:bg-orange-900/20 rounded-full blur-[100px] -z-10" />
+              <div className="absolute -bottom-20 -left-20 w-80 h-80 bg-blue-100 dark:bg-blue-900/20 rounded-full blur-[100px] -z-10" />
             </motion.div>
           </div>
         </div>
       </section>
 
-      {/* Trust Bar */}
-      <section className="py-20 border-t border-neutral-100">
-        <div className="mx-auto max-w-7xl px-6">
-          <p className="text-center text-[10px] font-black uppercase tracking-[0.3em] text-neutral-400 mb-12">Trusted by 10,000+ Workers in Pakistan</p>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-12 opacity-40 grayscale group-hover:grayscale-0 transition-all">
-             <div className="flex items-center justify-center gap-2 font-display font-bold text-2xl">JAZZ<span className="text-orange-500 text-xs">CASH</span></div>
-             <div className="flex items-center justify-center gap-2 font-display font-bold text-2xl">EASY<span className="text-emerald-500 text-xs">PAISA</span></div>
-             <div className="flex items-center justify-center gap-2 font-display font-bold text-2xl tracking-tighter">PAYPAL</div>
-             <div className="flex items-center justify-center gap-2 font-display font-bold text-2xl italic tracking-tight">FIREBASE</div>
-          </div>
-        </div>
-      </section>
-
-      {/* Values Section */}
-      <section className="py-32 bg-neutral-50">
-        <div className="mx-auto max-max-w-7xl px-6">
-          <div className="flex flex-col md:flex-row justify-between items-end mb-20 gap-8">
-            <div className="max-w-xl">
-              <h2 className="font-display text-5xl font-bold tracking-tight text-neutral-900 mb-6">Designed for Reliability.</h2>
-              <p className="text-lg text-neutral-500 font-medium">We've built the most secure platform for micro-earning, focusing on what matters: fast approvals and instant payouts.</p>
+      {/* Trust & Referral Teaser */}
+      <section className="py-24 bg-neutral-900 dark:bg-white text-white dark:text-neutral-900">
+         <div className="mx-auto max-w-7xl px-6">
+            <div className="grid md:grid-cols-2 gap-20 items-center">
+               <div>
+                  <h2 className="text-4xl font-black mb-6 tracking-tight">Earn more with <span className="text-orange-500">Referrals</span></h2>
+                  <p className="text-neutral-400 dark:text-neutral-500 font-medium mb-10 text-lg">Invite your friends and earn a commission on every task they complete. It's the ultimate way to build passive income.</p>
+                  <div className="space-y-4">
+                     {[
+                       { icon: HeartHandshake, title: 'Mutual Bonus', desc: 'Both you and your friend get a $0.50 starter bonus.' },
+                       { icon: Target, title: 'No Limits', desc: 'Invite as many people as you want. Truly unlimited.' }
+                     ].map((item, i) => (
+                       <div key={i} className="flex gap-4">
+                          <div className="h-10 w-10 bg-white/10 dark:bg-neutral-100 rounded-xl flex items-center justify-center text-orange-500 shrink-0">
+                             <item.icon size={20} />
+                          </div>
+                          <div>
+                             <h4 className="font-bold text-sm">{item.title}</h4>
+                             <p className="text-[11px] text-neutral-400 dark:text-neutral-500 mt-1 uppercase tracking-widest font-black leading-tight">{item.desc}</p>
+                          </div>
+                       </div>
+                     ))}
+                  </div>
+               </div>
+               <div className="bg-white/5 dark:bg-neutral-50 rounded-[3rem] p-10 border border-white/10 dark:border-neutral-200">
+                  <div className="text-center">
+                     <Shield className="h-16 w-16 text-orange-600 mx-auto mb-6" />
+                     <h3 className="text-2xl font-black mb-2">Verified & Secure</h3>
+                     <p className="text-neutral-400 dark:text-neutral-500 text-sm font-medium mb-8">We use enterprise-grade security to protect your earnings and identity.</p>
+                     <Link to="/trust" className="inline-block border-2 border-orange-600 text-orange-600 px-8 py-3 rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-orange-600 hover:text-white transition-all">
+                        View Trust Page
+                     </Link>
+                  </div>
+               </div>
             </div>
-            <Link to="/marketplace" className="text-sm font-bold text-neutral-900 flex items-center gap-2 group underline-offset-8 hover:underline italic">
-              See the marketplace in action
-              <ArrowRight size={16} />
-            </Link>
-          </div>
-
-          <div className="grid md:grid-cols-3 gap-8">
-            {[
-              { icon: Target, title: 'Precision Matching', desc: 'Our algorithm connects you with tasks that match your verified skill set perfectly.', color: 'border-orange-200 bg-orange-50/30' },
-              { icon: ShieldCheck, title: 'Escrow Guarantee', desc: 'Secure payment is held in escrow from the start. You work, you earn, you get paid.', color: 'border-blue-200 bg-blue-50/30' },
-              { icon: Banknote, title: 'Instant Liquidity', desc: 'Withdraw your earnings as soon as the task is marked as finished. No long wait times.', color: 'border-emerald-200 bg-emerald-50/30' }
-            ].map((f, i) => (
-              <motion.div 
-                key={i}
-                whileHover={{ y: -8 }}
-                className={`p-10 rounded-[2.5rem] border transition-all hover:bg-white hover:shadow-2xl ${f.color}`}
-              >
-                <div className="h-14 w-14 rounded-2xl bg-white shadow-sm flex items-center justify-center text-neutral-900 mb-8 border border-neutral-100">
-                  <f.icon size={26} />
-                </div>
-                <h3 className="text-xl font-bold mb-4">{f.title}</h3>
-                <p className="text-neutral-500 text-sm leading-relaxed font-medium">{f.desc}</p>
-              </motion.div>
-            ))}
-          </div>
-        </div>
+         </div>
       </section>
 
-      {/* CTA section */}
-      <section className="py-40 relative overflow-hidden">
-        <div className="mx-auto max-w-5xl px-6 text-center relative z-10">
-          <h2 className="font-display text-5xl md:text-7xl font-bold tracking-tight text-neutral-900 mb-12">Start your journey today.</h2>
-          <Link
-            to="/auth"
-            className="inline-flex items-center justify-center rounded-3xl bg-neutral-900 px-12 py-6 text-lg font-bold text-white shadow-3xl hover:bg-neutral-800 transition-all active:scale-95"
-          >
-            Create your account
-          </Link>
-        </div>
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full bg-orange-50/50 -z-10 blur-[100px] rounded-full scale-150" />
-      </section>
-
-      <footer className="py-20 border-t border-neutral-100 bg-white">
+      {/* Footer */}
+      <footer className="py-20 border-t border-neutral-100 dark:border-neutral-800 bg-white dark:bg-neutral-950 transition-colors">
         <div className="mx-auto max-w-7xl px-6">
           <div className="flex flex-col md:flex-row justify-between items-center gap-12">
             <div className="flex items-center gap-2">
               <Sparkles size={24} className="text-orange-600" />
-              <span className="font-display text-xl font-bold tracking-tight text-neutral-900 italic">SKILL2CASH</span>
+              <span className="font-display text-xl font-bold tracking-tight text-neutral-900 dark:text-white italic">SKILL2CASH</span>
             </div>
-            <div className="flex gap-12 text-sm font-bold text-neutral-500 uppercase tracking-widest">
-               <a href="#" className="hover:text-neutral-900 transition-colors">Privacy</a>
-               <a href="#" className="hover:text-neutral-900 transition-colors">Terms</a>
-               <a href="#" className="hover:text-neutral-900 transition-colors">Careers</a>
-               <a href="#" className="hover:text-neutral-900 transition-colors">Contact</a>
+            <div className="flex flex-wrap justify-center gap-8 md:gap-12 text-sm font-bold text-neutral-500 dark:text-neutral-400 uppercase tracking-widest">
+               <Link to="/trust" className="hover:text-neutral-900 dark:hover:text-white transition-colors">Trust</Link>
+               <Link to="/contact" className="hover:text-neutral-900 dark:hover:text-white transition-colors">Contact</Link>
+               <Link to="/feedback" className="hover:text-neutral-900 dark:hover:text-white transition-colors">Feedback</Link>
+               <Link to="/marketplace" className="hover:text-neutral-900 dark:hover:text-white transition-colors">Market</Link>
             </div>
           </div>
-          <div className="mt-20 pt-8 border-t border-neutral-50 text-center">
-            <p className="text-xs font-bold text-neutral-300 uppercase tracking-[0.5em]">© 2026 SKILL2CASH ENTERPRISE. ALL RIGHTS RESERVED.</p>
+          <div className="mt-20 pt-8 border-t border-neutral-50 dark:border-neutral-900 text-center">
+            <p className="text-xs font-bold text-neutral-300 dark:text-neutral-700 uppercase tracking-[0.5em]">© 2026 SKILL2CASH ENTERPRISE. ALL RIGHTS RESERVED.</p>
           </div>
         </div>
       </footer>

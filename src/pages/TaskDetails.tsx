@@ -161,6 +161,34 @@ const TaskDetails = () => {
         transaction.update(workerRef, { balance: increment(price) });
         transaction.update(subRef, { status: 'approved' });
         
+        // Referral Bonus Logic
+        const workerSnap = await transaction.get(workerRef);
+        if (workerSnap.exists()) {
+          const wData = workerSnap.data();
+          if (wData.referredBy && !wData.hasReceivedReferralBonus) {
+            const referrerRef = doc(db, 'users', wData.referredBy);
+            const refBonus = 0.50;
+            transaction.update(referrerRef, {
+              balance: increment(refBonus),
+              referralEarnings: increment(refBonus)
+            });
+            transaction.update(workerRef, {
+              hasReceivedReferralBonus: true
+            });
+
+            // Notify referrer
+            const refNotifRef = doc(collection(db, 'users', wData.referredBy, 'notifications'));
+            transaction.set(refNotifRef, {
+               userId: wData.referredBy,
+               title: 'Referral Bonus! 🎁',
+               message: `You earned $${refBonus.toFixed(2)} because your referral completed their first task!`,
+               type: 'wallet',
+               read: false,
+               createdAt: serverTimestamp()
+            });
+          }
+        }
+
         // Record transaction
         const txRef = doc(collection(db, 'transactions'));
         transaction.set(txRef, {

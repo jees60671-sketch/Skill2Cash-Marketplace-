@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { collection, query, where, onSnapshot, orderBy, limit, addDoc, serverTimestamp, updateDoc, doc, increment } from 'firebase/firestore';
-import { db } from '../lib/firebase';
+import { reauthenticateWithPopup, GoogleAuthProvider } from 'firebase/auth';
+import { db, auth } from '../lib/firebase';
 import { useAuth } from '../context/AuthContext';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
@@ -25,9 +26,15 @@ const Wallet = () => {
   const [transactions, setTransactions] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [showWithdraw, setShowWithdraw] = useState(false);
+  const [showDeposit, setShowDeposit] = useState(false);
   const [withdrawAmount, setWithdrawAmount] = useState('');
   const [withdrawMethod, setWithdrawMethod] = useState('JazzCash');
+  const [depositAmount, setDepositAmount] = useState('');
+  const [depositMethod, setDepositMethod] = useState('JazzCash');
+  const [depositTxId, setDepositTxId] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  const [needsReauth, setNeedsReauth] = useState(false);
+  const [reauthSuccess, setReauthSuccess] = useState(false);
 
   const [pinInput, setPinInput] = useState('');
   const [isSettingPin, setIsSettingPin] = useState(false);
@@ -79,6 +86,90 @@ const Wallet = () => {
     }
   };
 
+  const handleReauthenticate = async () => {
+    if (!user) return;
+    setSubmitting(true);
+    try {
+      const provider = new GoogleAuthProvider();
+      await reauthenticateWithPopup(user, provider);
+      setReauthSuccess(true);
+      setNeedsReauth(false);
+      alert("Account verified successfully!");
+    } catch (err: any) {
+      console.error(err);
+      if (err.code === 'auth/popup-closed-by-user') {
+        alert("Verification cancelled");
+      } else {
+        alert("Verification failed: " + err.message);
+      }
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleForgotPin = async () => {
+    if (!confirm("To reset your Security PIN, you must verify your identity by signing in again. Continue?")) return;
+    
+    setSubmitting(true);
+    try {
+      const provider = new GoogleAuthProvider();
+      await reauthenticateWithPopup(user!, provider);
+      
+      // Clear the PIN after successful re-auth
+      await updateDoc(doc(db, 'users', user!.uid), {
+        securityPin: null
+      });
+      
+      alert("Security PIN has been reset. You can now set a new one.");
+      setIsSettingPin(true);
+    } catch (err: any) {
+      console.error(err);
+      alert("Verification failed. Could not reset PIN.");
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleDeposit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const amount = parseFloat(depositAmount);
+    
+    if (!user || isNaN(amount) || amount <= 0) {
+      alert("Invalid deposit amount");
+      return;
+    }
+
+    if (!depositTxId.trim()) {
+      alert("Please enter the Transaction ID / Reference Number");
+      return;
+    }
+
+    setSubmitting(true);
+    try {
+      // Create pending deposit transaction
+      await addDoc(collection(db, 'transactions'), {
+        userId: user.uid,
+        userEmail: user.email,
+        amount: amount,
+        type: 'deposit',
+        method: depositMethod,
+        transactionId: depositTxId,
+        status: 'pending',
+        createdAt: serverTimestamp()
+      });
+
+      alert(`Deposit request for $${amount} via ${depositMethod} received! Our team will verify the Transaction ID: ${depositTxId} and credit your account shortly.`);
+      setDepositAmount('');
+      setDepositTxId('');
+      setShowDeposit(false);
+    } catch (err) {
+      console.error(err);
+      alert('Deposit submission failed');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
   const handleWithdraw = async (e: React.FormEvent) => {
     e.preventDefault();
     const amount = parseFloat(withdrawAmount);
@@ -90,6 +181,12 @@ const Wallet = () => {
 
     if (userData?.securityPin && pinInput !== userData.securityPin) {
       alert("Incorrect Security PIN");
+      return;
+    }
+
+    // Require periodic re-auth for withdrawals (or just force it for this demo)
+    if (!reauthSuccess) {
+      setNeedsReauth(true);
       return;
     }
 
@@ -117,6 +214,7 @@ const Wallet = () => {
       setWithdrawAmount('');
       setPinInput('');
       setShowWithdraw(false);
+      setReauthSuccess(false); // Reset re-auth for next time
     } catch (err) {
       console.error(err);
       alert('Withdrawal failed');
@@ -145,7 +243,7 @@ const Wallet = () => {
                   <span className="text-orange-500">$</span>{userData?.balance?.toFixed(2) || '0.00'}
                </div>
                <div className="mt-12 grid grid-cols-2 gap-4">
-                  <button onClick={() => alert('Deposit feature coming soon!')} className="flex items-center justify-center gap-2 rounded-2xl bg-white/10 py-4 font-bold text-sm hover:bg-white/20 transition-all">
+                  <button onClick={() => setShowDeposit(true)} className="flex items-center justify-center gap-2 rounded-2xl bg-white/10 py-4 font-bold text-sm hover:bg-white/20 transition-all">
                      <Plus size={18} /> Deposit
                   </button>
                   <button onClick={() => setShowWithdraw(true)} className="flex items-center justify-center gap-2 rounded-2xl bg-orange-600 py-4 font-bold text-sm hover:bg-orange-500 transition-all shadow-lg shadow-orange-600/30">
@@ -192,6 +290,12 @@ const Wallet = () => {
                     className="w-full py-3 rounded-xl border-2 border-neutral-100 text-xs font-black text-neutral-400 uppercase tracking-widest hover:border-orange-200 hover:text-orange-600 transition-all font-sans"
                   >
                     Change Security PIN
+                  </button>
+                  <button 
+                    onClick={handleForgotPin}
+                    className="w-full text-[10px] text-center font-black text-neutral-400 uppercase tracking-widest mt-1 hover:text-orange-600 transition-colors"
+                  >
+                    Reset via Identity Verification
                   </button>
                </div>
              ) : (
@@ -275,6 +379,106 @@ const Wallet = () => {
         </div>
       </div>
 
+      {/* Deposit Modal */}
+      <AnimatePresence>
+        {showDeposit && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+             <motion.div 
+               initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+               className="absolute inset-0 bg-neutral-900/60 backdrop-blur-sm"
+               onClick={() => setShowDeposit(false)}
+             />
+             <motion.div
+               initial={{ opacity: 0, scale: 0.95, y: 20 }}
+               animate={{ opacity: 1, scale: 1, y: 0 }}
+               exit={{ opacity: 0, scale: 0.95, y: 20 }}
+               className="relative w-full max-w-lg bg-white rounded-[2.5rem] p-10 shadow-2xl overflow-hidden"
+             >
+                <div className="absolute top-0 right-0 p-8 opacity-5">
+                   <Plus size={120} />
+                </div>
+                <div className="relative z-10">
+                   <h2 className="text-2xl font-black text-neutral-900 mb-2">Deposit Funds</h2>
+                   <p className="text-neutral-500 text-sm mb-6">Instantly top up your balance via local providers.</p>
+
+                   <div className="bg-orange-50 border border-orange-100 rounded-2xl p-6 mb-8">
+                      <div className="flex items-center gap-2 mb-4">
+                        <AlertCircle size={16} className="text-orange-600" />
+                        <h4 className="text-xs font-black text-orange-950 uppercase tracking-widest">Payment Instructions</h4>
+                      </div>
+                      <div className="space-y-4">
+                        <div className="flex justify-between items-start">
+                          <span className="text-[10px] font-bold text-neutral-500 uppercase">Provider</span>
+                          <span className="text-sm font-black text-neutral-900">{depositMethod}</span>
+                        </div>
+                        <div className="flex justify-between items-start">
+                          <span className="text-[10px] font-bold text-neutral-500 uppercase">Account Details</span>
+                          <span className="text-sm font-black text-neutral-900 text-right">
+                            {depositMethod === 'PayPal' ? 'payments@microgig.com' : '0300-1234567'}
+                          </span>
+                        </div>
+                        <p className="text-[10px] text-orange-800/70 leading-relaxed font-bold uppercase italic">
+                          Send amount to the account above and enter your Transaction ID below for verification.
+                        </p>
+                      </div>
+                   </div>
+
+                   <form onSubmit={handleDeposit} className="space-y-6">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div className="space-y-2">
+                           <label className="text-xs font-bold text-neutral-400 uppercase tracking-widest">Deposit Amount ($)</label>
+                           <input 
+                             type="number" 
+                             step="0.01"
+                             className="w-full px-6 py-4 rounded-2xl bg-neutral-50 border-none font-black text-xl focus:ring-2 focus:ring-orange-500/20"
+                             placeholder="0.00"
+                             required
+                             value={depositAmount}
+                             onChange={(e) => setDepositAmount(e.target.value)}
+                           />
+                        </div>
+                        <div className="space-y-2">
+                           <label className="text-xs font-bold text-neutral-400 uppercase tracking-widest">Method</label>
+                           <div className="relative">
+                             <select 
+                               className="w-full px-6 py-4 rounded-2xl bg-neutral-50 border-none font-bold text-sm focus:ring-2 focus:ring-orange-500/20 appearance-none"
+                               value={depositMethod}
+                               onChange={(e) => setDepositMethod(e.target.value)}
+                             >
+                               <option value="JazzCash">JazzCash</option>
+                               <option value="EasyPaisa">EasyPaisa</option>
+                               <option value="PayPal">PayPal</option>
+                             </select>
+                           </div>
+                        </div>
+                      </div>
+
+                      <div className="space-y-2">
+                         <label className="text-xs font-bold text-neutral-400 uppercase tracking-widest">Transaction ID / Reference #</label>
+                         <input 
+                           type="text" 
+                           className="w-full px-6 py-4 rounded-2xl bg-neutral-50 border-none font-bold text-sm focus:ring-2 focus:ring-orange-500/20"
+                           placeholder="Enter TxID from your payment app"
+                           required
+                           value={depositTxId}
+                           onChange={(e) => setDepositTxId(e.target.value)}
+                         />
+                      </div>
+
+                      <button 
+                        type="submit" 
+                        disabled={submitting}
+                        className="w-full bg-neutral-900 text-white font-black py-5 rounded-3xl mt-4 hover:bg-neutral-800 transition-all flex items-center justify-center gap-2 shadow-xl shadow-neutral-900/20 active:scale-95 disabled:opacity-50"
+                      >
+                         {submitting ? 'Submitting...' : 'Submit Deposit Request'}
+                      </button>
+                   </form>
+                </div>
+             </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
       {/* Withdrawal Modal */}
       <AnimatePresence>
         {showWithdraw && (
@@ -346,12 +550,46 @@ const Wallet = () => {
                               onChange={(e) => setPinInput(e.target.value)}
                             />
                             <p className="text-[10px] text-center font-bold text-neutral-400 uppercase tracking-widest">Enter your 6-digit withdrawal PIN</p>
+                            <button 
+                              type="button"
+                              onClick={handleForgotPin}
+                              className="w-full text-[10px] text-center font-black text-orange-600 uppercase tracking-widest mt-2 hover:underline"
+                            >
+                              Forgot PIN? Reset via Identity Verification
+                            </button>
                          </div>
+                      )}
+
+                      {needsReauth && (
+                        <div className="p-6 rounded-2xl bg-orange-50 border border-orange-100 space-y-4">
+                          <div className="flex bg-orange-100 h-10 w-10 items-center justify-center rounded-xl text-orange-600 mx-auto">
+                             <ShieldCheck size={20} />
+                          </div>
+                          <div className="text-center">
+                            <h4 className="font-bold text-neutral-900 text-sm">Verify Your Identity</h4>
+                            <p className="text-xs text-neutral-500 mt-1 leading-tight">For your security, please sign in again to confirm this withdrawal.</p>
+                          </div>
+                          <button 
+                            type="button"
+                            onClick={handleReauthenticate}
+                            disabled={submitting}
+                            className="w-full py-3 bg-neutral-900 text-white rounded-xl font-bold text-xs uppercase tracking-widest hover:bg-neutral-800 transition-all flex items-center justify-center gap-2"
+                          >
+                            {submitting ? 'Verifying...' : 'Confirm with Google'}
+                          </button>
+                        </div>
+                      )}
+
+                      {reauthSuccess && (
+                        <div className="flex items-center gap-3 p-4 rounded-xl bg-emerald-50 text-emerald-600 border border-emerald-100 mb-4">
+                          <CheckCircle2 size={18} />
+                          <span className="text-xs font-bold uppercase tracking-widest leading-none">Identity Verified</span>
+                        </div>
                       )}
 
                       <button 
                         type="submit" 
-                        disabled={submitting}
+                        disabled={submitting || (needsReauth && !reauthSuccess)}
                         className="w-full bg-orange-600 text-white font-black py-5 rounded-3xl mt-4 hover:bg-orange-500 transition-all flex items-center justify-center gap-2 shadow-xl shadow-orange-600/20 active:scale-95 disabled:opacity-50"
                       >
                          {submitting ? 'Processing...' : (

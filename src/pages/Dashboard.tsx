@@ -13,7 +13,8 @@ import {
   Headphones,
   Wallet,
   Share2,
-  ChevronRight
+  ChevronRight,
+  Sparkles
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
@@ -83,6 +84,31 @@ const Dashboard = () => {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
         {/* Main Content */}
         <div className="lg:col-span-2 space-y-12">
+          {/* Getting Started Guide */}
+          <section className="bg-orange-50 rounded-[2.5rem] p-10 border border-orange-100 mb-12">
+            <h2 className="font-display text-2xl font-bold text-neutral-900 tracking-tight mb-6 flex items-center gap-3">
+              <Sparkles className="text-orange-600" />
+              Getting Started
+            </h2>
+            <div className="grid gap-6">
+              {[
+                { title: '1. Build Your Profile', desc: 'Add your skills and experience to unlock higher-paying tasks.', action: 'Go to Profile', to: `/profile/${userData?.uid}` },
+                { title: '2. Find a Task', desc: 'Browse the marketplace for micro-tasks that match your expertise.', action: 'Browse Now', to: '/marketplace' },
+                { title: '3. Submit & Earn', desc: 'Complete the task, upload proof, and get paid instantly to your wallet.', action: 'View Guide', to: '/' }
+              ].map((step, idx) => (
+                <div key={idx} className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-6 bg-white rounded-3xl border border-orange-100 shadow-sm transition-all hover:shadow-md">
+                  <div>
+                    <h3 className="font-bold text-neutral-900 mb-1">{step.title}</h3>
+                    <p className="text-sm text-neutral-500 font-medium">{step.desc}</p>
+                  </div>
+                  <Link to={step.to} className="shrink-0 text-[10px] font-black text-orange-600 uppercase tracking-widest bg-orange-50 px-4 py-2 rounded-xl hover:bg-orange-600 hover:text-white transition-all">
+                    {step.action}
+                  </Link>
+                </div>
+              ))}
+            </div>
+          </section>
+
           <section>
             <div className="flex items-center justify-between mb-8">
               <h2 className="font-display text-2xl font-bold text-neutral-900 tracking-tight">Recommended</h2>
@@ -95,8 +121,35 @@ const Dashboard = () => {
               {loading ? (
                 [1, 2].map(i => <div key={i} className="h-28 rounded-3xl bg-neutral-50 animate-pulse border border-neutral-100" />)
               ) : recentTasks.length === 0 ? (
-                <div className="text-center py-20 bg-neutral-50 rounded-[2.5rem] border border-dashed border-neutral-200">
-                   <p className="text-neutral-500 font-medium">No open tasks found. Check back later!</p>
+                <div className="space-y-4">
+                  <div className="text-center py-10 bg-neutral-50 rounded-[2.5rem] border border-dashed border-neutral-200 mb-4">
+                     <p className="text-neutral-500 font-medium italic">No live tasks yet. Here are some examples of what you can do:</p>
+                  </div>
+                  {[
+                    { title: 'Graphic Logo Design', price: 25.0, category: 'Design', id: 'ex1' },
+                    { title: 'Urdu to English Translation', price: 10.0, category: 'Writing', id: 'ex2' },
+                    { title: 'Excel Data Cleaning', price: 5.0, category: 'Data', id: 'ex3' }
+                  ].map((task) => (
+                    <div 
+                      key={task.id} 
+                      className="group block rounded-[2rem] bg-white p-8 border border-neutral-100 opacity-60 grayscale-[0.5] cursor-not-allowed"
+                    >
+                      <div className="flex items-center justify-between">
+                        <div className="space-y-2">
+                          <h3 className="font-bold text-lg text-neutral-900">{task.title}</h3>
+                          <div className="flex items-center gap-4">
+                             <span className="px-3 py-1 rounded-full bg-neutral-50 text-[10px] font-black text-neutral-400 uppercase tracking-widest border border-neutral-100">
+                               {task.category}
+                             </span>
+                             <span className="text-[10px] font-black text-orange-400 uppercase tracking-widest">Example Task</span>
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <div className="font-display text-2xl font-bold text-neutral-900">${task.price.toFixed(2)}</div>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
                 </div>
               ) : (
                 recentTasks.map((task) => (

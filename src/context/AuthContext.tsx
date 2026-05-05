@@ -10,6 +10,10 @@ interface UserData {
   photoURL: string | null;
   role: 'user' | 'admin';
   balance: number;
+  referralCount?: number;
+  referralEarnings?: number;
+  referredBy?: string | null;
+  hasReceivedReferralBonus?: boolean;
 }
 
 interface AuthContextType {

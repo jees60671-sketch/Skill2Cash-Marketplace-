@@ -8,7 +8,9 @@ import {
   doc, 
   getDoc, 
   setDoc, 
-  serverTimestamp 
+  serverTimestamp,
+  updateDoc,
+  increment 
 } from 'firebase/firestore';
 import { auth, db, handleFirestoreError, OperationType } from '../lib/firebase';
 import { motion } from 'motion/react';
@@ -37,6 +39,10 @@ const AuthPage = () => {
       }
 
       if (!userSnap?.exists()) {
+        // Get referral code from URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const refCode = urlParams.get('ref');
+
         // Create new user profile
         try {
           await setDoc(userRef, {
@@ -48,8 +54,20 @@ const AuthPage = () => {
             balance: 0,
             rating: 0,
             reviewCount: 0,
+            referralCount: 0,
+            referralEarnings: 0,
+            referredBy: refCode || null,
+            hasReceivedReferralBonus: false,
             createdAt: serverTimestamp(),
           });
+
+          // If there is a referral code, increment the referrer's count
+          if (refCode) {
+            const referrerRef = doc(db, 'users', refCode);
+            await updateDoc(referrerRef, {
+              referralCount: increment(1)
+            }).catch(e => console.error("Referrer not found", e));
+          }
         } catch (err) {
           handleFirestoreError(err, OperationType.WRITE, `users/${user.uid}`);
         }

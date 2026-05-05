@@ -13,6 +13,10 @@ import Chat from './pages/Chat';
 import Profile from './pages/Profile';
 import AdminPanel from './pages/AdminPanel';
 import Notifications from './pages/Notifications';
+import ExtraEarn from './pages/ExtraEarn';
+import TrustPage from './pages/TrustPage';
+import ContactPage from './pages/ContactPage';
+import FeedbackPage from './pages/FeedbackPage';
 
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const { user, loading } = useAuth();
@@ -21,15 +25,21 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   return <>{children}</>;
 };
 
+import { ThemeProvider } from './context/ThemeContext';
+
 export default function App() {
   return (
-    <AuthProvider>
-      <NotificationProvider>
-        <Router>
-          <div className="min-h-screen bg-neutral-50 font-sans text-neutral-900">
-            <Routes>
-              <Route path="/" element={<LandingPage />} />
-              <Route path="/auth" element={<AuthPage />} />
+    <ThemeProvider>
+      <AuthProvider>
+        <NotificationProvider>
+          <Router>
+            <div className="min-h-screen bg-neutral-50 dark:bg-neutral-950 font-sans text-neutral-900 dark:text-neutral-50 transition-colors duration-300">
+              <Routes>
+                <Route path="/" element={<LandingPage />} />
+                <Route path="/auth" element={<AuthPage />} />
+                <Route path="/trust" element={<TrustPage />} />
+                <Route path="/contact" element={<ContactPage />} />
+                <Route path="/feedback" element={<FeedbackPage />} />
               
               <Route path="/dashboard" element={
                 <ProtectedRoute><Navbar /><Dashboard /></ProtectedRoute>
@@ -38,8 +48,11 @@ export default function App() {
                 <ProtectedRoute><Navbar /><Notifications /></ProtectedRoute>
               } />
               <Route path="/marketplace" element={
-              <ProtectedRoute><Navbar /><Marketplace /></ProtectedRoute>
-            } />
+                <ProtectedRoute><Navbar /><Marketplace /></ProtectedRoute>
+              } />
+              <Route path="/earn" element={
+                <ProtectedRoute><Navbar /><ExtraEarn /></ProtectedRoute>
+              } />
             <Route path="/tasks/:id" element={
               <ProtectedRoute><Navbar /><TaskDetails /></ProtectedRoute>
             } />
@@ -61,7 +74,8 @@ export default function App() {
           </Routes>
         </div>
       </Router>
-      </NotificationProvider>
-    </AuthProvider>
+        </NotificationProvider>
+      </AuthProvider>
+    </ThemeProvider>
   );
 }
